@@ -218,7 +218,9 @@ jobs:
 
   build:
     name: Compile
-    needs: [ test, get_info ]
+    # The image build reads nothing from the unit tests; package_chart still
+    # needs them, so e2e stays gated on green tests.
+    needs: [ lint, get_info ]
     runs-on: ubuntu-22.04
     if: needs.get_info.outputs.e2e_run == 'true' || github.ref == 'refs/heads/master'
     steps:
