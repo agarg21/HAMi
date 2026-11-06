@@ -7,10 +7,8 @@ on:
     # Keep a longer-running benchmark history without making PR feedback slow.
     - cron: '17 3 * * 1'
   push:
-    # Exclude branches created by Dependabot to avoid triggering current workflow
-    # for PRs initiated by Dependabot.
-    branches-ignore:
-      - 'dependabot/**'
+    # fork-only (ci-measure): no push runs from measurement branches
+    branches: [ master ]
 permissions:
   contents: read  # for actions/checkout to fetch code
 
@@ -355,22 +353,3 @@ jobs:
           path: tmp/*
           retention-days: 5
           if-no-files-found: error
-
-  # execute a full e2e test when hami code merge
-  e2e_test:
-    uses: ./.github/workflows/call-e2e.yaml
-    needs: [ package_chart, get_info, build ]
-    if: needs.get_info.outputs.e2e_run == 'true' || (github.repository == 'Project-HAMi/HAMi' && github.ref == 'refs/heads/master')
-    with:
-      ref: ${{ needs.get_info.outputs.version }}
-      type: "pullrequest"
-
-  # execute MIG smoke test when hami code merge
-  e2e_mig_test:
-    uses: ./.github/workflows/call-e2e-mig.yaml
-    needs: [ package_chart, get_info, build, e2e_test ]
-    if: (needs.get_info.outputs.e2e_run == 'true' || (github.repository == 'Project-HAMi/HAMi' && github.ref == 'refs/heads/master')) && vars.ENABLE_MIG_E2E == 'true'
-    with:
-      ref: ${{ needs.get_info.outputs.version }}
-      type: "smoke"
-      deploy-type: "pullrequest"
